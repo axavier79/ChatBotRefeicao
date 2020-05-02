@@ -24,22 +24,22 @@ server.post('/api/messages', connector.listen());
 // Bloco de Dialogs: 
 var bot = new builder.UniversalBot(connector, [
     function (session) {
-        session.send("Welcome to the dinner reservation.");
-        builder.Prompts.time(session, "Please provide a reservation date and time (e.g.: June 6th at 5pm)");
+        session.send("Bem vindo(a) a opção de montar sua refeição.");
+        builder.Prompts.text(session, "Por favor escolha sua Proteína entre: Frango, Carne vermelha ou Peixe.");
     },
     function (session, results) {
-        session.dialogData.reservationDate = builder.EntityRecognizer.resolveTime([results.response]);
-        builder.Prompts.text(session, "How many people are in your party?");
+        session.dialogData.proteina = results.response;
+        builder.Prompts.text(session, "Por favor escolha seu Carboidrato: Arroz, Batata ou Mandioca.");
     },
     function (session, results) {
-        session.dialogData.partySize = results.response;
-        builder.Prompts.text(session, "Whose name will this reservation be under?");
+        session.dialogData.carboidrato = results.response;
+        builder.Prompts.text(session, "Por favor escolha sua Salada entre: Alface, Tomate, Cenoura, Beterraba ou  Mix (escolha de até 3 opções).");
     },
     function (session, results) {
-        session.dialogData.reservationName = results.response;
+        session.dialogData.salada = results.response;
 
         // Process request and display reservation details
-        session.send(`Reservation confirmed. Reservation details: <br/>Date/Time: ${session.dialogData.reservationDate} <br/>Party size: ${session.dialogData.partySize} <br/>Reservation name: ${session.dialogData.reservationName}`);
+        session.send(`Montagem da refeição concluída. Proteína: ${session.dialogData.proteina} - Carboidrato: ${session.dialogData.carboidrato} - Salada: ${session.dialogData.salada}`);
         session.endDialog();
     }
 ]).set('storage', inMemoryStorage); // Register in-memory storage 
