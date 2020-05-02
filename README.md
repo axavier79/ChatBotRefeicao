@@ -1,2 +1,0 @@
-# ChatBotRefeicao
-Teste Ebix.
