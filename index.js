@@ -2,6 +2,17 @@
 //Adicionando os pacotes
 var restify = require('restify');
 var builder = require('botbuilder');
+var mongoose = require('mongoose');
+
+//MongoDB
+var url = 'mongodb+srv://chatbot:Test0205@cluster0-udmqo.mongodb.net/test?retryWrites=true&w=majority';
+var db = mongoose.connection;
+db.on('error', console.error);
+db.once('open', function() {
+  console.log('Conectado ao banco de dados.')
+});
+mongoose.connect(url);
+
 
 //Configurando a porta onde o projeto responderá
 var server = restify.createServer();
