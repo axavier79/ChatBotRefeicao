@@ -1,39 +1,94 @@
-//Require the express module
+//require the express module
 const express = require("express");
-
-//create a new express application
-const app = express()
-
-//database connection
-const  Chat  = require("./models/chatSchema");
-const  connect  = require("./dbConnection");
+const app = express();
+const dateTime = require("simple-datetime-formater");
+const bodyParser = require("body-parser");
+const chatRouter = require("./route/chatroute");
+const loginRouter = require("./route/loginRoute");
 
 //require the http module
-const http = require("http").Server(app)
+const http = require("http").Server(app);
 
 // require the socket.io module
 const io = require("socket.io");
 
 const port = 5000;
 
-const socket = io(http);
-//create an event listener
+//ChatBot requirements
+var restify = require('restify');
+var builder = require('botbuilder');
 
-//To listen to messages
-socket.on("connection", (socket) => {
-    console.log("User connected");
-    socket.on("disconnect", ()=>{
-        console.log("Disconnected");
-    })
+//bodyparser middleware
+app.use(bodyParser.json());
+
+//routes
+app.use("/chats", chatRouter);
+app.use("/login", loginRouter);
+
+//set the express.static middleware
+app.use(express.static(__dirname + "/public"));
+
+//integrating socketio
+socket = io(http);
+
+//database connection
+const Chat = require("./models/Chat");
+const connect = require("./dbconnect");
+
+//ChatBot
+var server = restify.createServer();
+server.listen(process.env.port || process.env.PORT || 3978, function () {
+   console.log('%s listening to %s', server.name, server.url); 
 });
 
-//wire up the server to listen to our port 5000
-http.listen(port, () => {
-    console.log("connected to port: " + port)
+var connector = new builder.ChatConnector({
+    appId: process.env.MICROSOFT_APP_ID,
+    appPassword: process.env.MICROSOFT_APP_PASSWORD
 });
 
-socket.on("chat message", function (msg) {
+server.post('/api/messages', connector.listen());
+var bot = new builder.UniversalBot(connector, function (session) {
+    session.send("Você disse: %s", session.message.text);
+});
+//ChatBot
+
+//setup event listener
+socket.on("connection", socket => {
+  console.log("user connected");
+
+  socket.on("disconnect", function() {
+    console.log("user disconnected");
+  });
+
+  //Someone is typing
+  socket.on("typing", data => {
+    socket.broadcast.emit("notifyTyping", {
+      user: data.user,
+      message: data.message
+    });
+  });
+
+  //when soemone stops typing
+  socket.on("stopTyping", () => {
+    socket.broadcast.emit("notifyStopTyping");
+  });
+
+  socket.on("chat message", function(msg) {
     console.log("message: " + msg);
+
     //broadcast message to everyone in port:5000 except yourself.
     socket.broadcast.emit("received", { message: msg });
+
+    //save chat to the database
+    connect.then(db => {
+      console.log("connected correctly to the server");
+      let chatMessage = new Chat({ message: msg, sender: "Anonymous" });
+
+      chatMessage.save();
+    });
+  });
+});
+
+http.listen(port, () => {
+  console.log("Running on Port: " + port);
 });
