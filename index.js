@@ -1,5 +1,5 @@
 /** * Author: Anderson Xavier * Data: 02/05/2020 * Descrição: Desenvolvimento de um Bot via Bot Emulator. **/
-//Adicionando os pacotes
+//Adicionando os pacotes restify e botbuilder
 var restify = require('restify');
 var builder = require('botbuilder');
 
