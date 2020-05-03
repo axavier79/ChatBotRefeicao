@@ -5,14 +5,16 @@ var builder = require('botbuilder');
 var mongoose = require('mongoose');
 
 //MongoDB
-var url = 'mongodb+srv://chatbot:Test0205@cluster0-udmqo.mongodb.net/test?retryWrites=true&w=majority';
+var alimentos = require("./models/alimentoModel");
+var alimentosController = require("./controllers/alimentoController");
+
+var url = 'mongodb+srv://chatbot:Test123@cluster0-udmqo.mongodb.net/chatbotrefeicao?retryWrites=true&w=majority';
 var db = mongoose.connection;
 db.on('error', console.error);
 db.once('open', function() {
-  console.log('Conectado ao banco de dados.')
+  console.log('Conectado ao banco de dados: %s', db.name)
 });
 mongoose.connect(url);
-
 
 //Configurando a porta onde o projeto responderá
 var server = restify.createServer();
@@ -35,6 +37,9 @@ server.post('/api/messages', connector.listen());
 // Bloco de Dialogs: 
 var bot = new builder.UniversalBot(connector, [
     function (session) {
+        console.log("--INICIO--");
+        console.log(alimentosController.listAlimentos());
+        console.log("--FIM--");
         session.send("Bem vindo(a) a opção de montar sua refeição.");
         builder.Prompts.text(session, "Por favor escolha sua Proteína entre: Frango, Carne vermelha ou Peixe.");
     },
